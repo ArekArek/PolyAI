@@ -1,0 +1,4 @@
+polynomial_degree: 5
+training:
+  input_data_path: training-data/
+
