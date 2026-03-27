@@ -1,4 +1,10 @@
 polynomial_degree: 5
 training:
   input_data_path: training-data/
+  output_model_path: model/
+  epochs_count: 10
+  early_stop_epochs: 17
+  batch_size: 9
+  hidden_size: 3
+  layers_count: 1
 

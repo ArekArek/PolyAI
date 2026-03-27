@@ -2,6 +2,8 @@ import numpy as np
 from numpy.polynomial import Polynomial
 import os
 import torch
+from scipy.optimize import linear_sum_assignment
+import torch.nn.functional as F
 
 MAX_FLOAT = torch.finfo(torch.float32).max
 BOUNDS_MODIFIER = 1e-33
@@ -68,3 +70,47 @@ def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
         zeroes[mask] = gen(invalid_count)
 
     return zeroes
+
+
+def complex_matching_mse_loss(predicted, factual):
+    batch_size, num_points, _ = predicted.shape
+
+    # 1. Calculate pairwise Euclidean distances between all points in each batch.
+    # The Euclidean distance between (real, imag) pairs is mathematically equivalent
+    # to the magnitude of the difference between complex numbers.
+    # We use .detach() because the assignment step shouldn't track gradients.
+    dist_matrix = torch.cdist(predicted.detach(), factual.detach())
+
+    # Convert to numpy for scipy's linear_sum_assignment
+    dist_matrix_np = dist_matrix.cpu().numpy()
+
+    # 2. Collect the optimal permutation indices for the factual tensor
+    matched_factual_indices = []
+    for i in range(batch_size):
+        cost_matrix = dist_matrix_np[i]
+
+        # linear_sum_assignment finds the lowest cost bipartite matching.
+        # col_ind tells us which factual element optimally maps to predicted[row_ind].
+        row_ind, col_ind = linear_sum_assignment(cost_matrix)
+        matched_factual_indices.append(col_ind)
+
+    # Convert the matched indices back to a tensor, shape: (batch_size, num_points)
+    matched_indices = torch.tensor(
+        matched_factual_indices, device=factual.device, dtype=torch.long
+    )
+
+    # 3. Gather the factual values according to the matched indices
+    # We need to expand matched_indices to gather along the last dimension (real/imag pairs)
+    # matched_indices_expanded shape becomes: (x, polynomial_degree, 2)
+    matched_indices_expanded = matched_indices.unsqueeze(-1).expand(-1, -1, 2)
+
+    # Reorder 'factual' along dimension 1 (the polynomial_degree items) to align with 'predicted'
+    matched_factual = torch.gather(factual, 1, matched_indices_expanded)
+
+    # 4. Compute PyTorch MSE loss
+    # Gradients will flow properly through 'predicted' since we didn't detach it here.
+    # F.mse_loss uses reduction='mean' by default, meaning it calculates the average of
+    # the x * 5 MSE losses.
+    loss = F.mse_loss(predicted, matched_factual)
+
+    return loss

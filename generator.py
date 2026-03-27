@@ -41,7 +41,9 @@ order = np.argsort(np.abs(zeroes), axis=1)
 zeroes_sorted = np.take_along_axis(zeroes, order, axis=1)
 
 # calculate coefficients
-coeffs = np.array([Polynomial.fromroots(row).coef for row in zeroes])
+coeffs = np.array(
+    [Polynomial.fromroots(row).coef for row in zeroes], dtype=np.complex64
+)
 
 
 print(f"Saving coefficients to {args.out}coefficients.npy")
