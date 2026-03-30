@@ -59,12 +59,9 @@ def main():
             optimizer.zero_grad()
             preds = model(coeff_batch)
 
-            print(zero_batch.shape)
-            print(zero_batch.dtype)
-            print(preds.shape)
-            print(preds.dtype)
+            matched_zeroes = match_closest(predicted, factual)
+            loss = F.mse_loss(*matched_zeroes)
 
-            loss = utils.complex_matching_mse_loss(preds, zero_batch)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
