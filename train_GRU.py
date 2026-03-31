@@ -1,21 +1,37 @@
 import numpy as np
 import torch
-from datetime import datetime
-import time
 import os
 from scipy.optimize import linear_sum_assignment
 
 from model_gru import ModelGRU
 import utils
-from utils import CONFIG
+from utils import CONFIG, dt
+import logging
+import time
+import torch.nn.functional as F
 
 
 def main():
-    RUN_TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
-    RUN_DIR = os.path.join(CONFIG["training"]["output_model_path"], RUN_TIMESTAMP)
+    RUN_DIR = f"{CONFIG['training']['output_model_path']}{dt()}"
 
     if not os.path.exists(RUN_DIR):
         os.makedirs(RUN_DIR)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler(f"{CONFIG['logs_path']}{dt()}-train.log"),
+            logging.StreamHandler(),
+        ],
+    )
+
+    logging.info("=" * 50)
+    logging.info(" Train model ".center(50, "="))
+    logging.info(f" {dt(1)} ".center(50, "="))
+    logging.info("-" * 50)
+    logging.info(f"defaults: {CONFIG} ".center(50, "="))
+    logging.info("=" * 50)
 
     org_model = ModelGRU()
     # compression for performance improvements
@@ -49,17 +65,16 @@ def main():
     )
 
     start_time = time.time()
-    print(f"Training start. Models will be saved into: {RUN_DIR}")
 
     for epoch in range(CONFIG["training"]["epochs_count"]):
         epoch_loss = 0.0
         model.train()
 
-        for coeff_batch, zero_batch in data_loader:
+        for coeff_batch, factual in data_loader:
             optimizer.zero_grad()
             preds = model(coeff_batch)
 
-            matched_zeroes = match_closest(predicted, factual)
+            matched_zeroes = utils.match_closest(preds, factual)
             loss = F.mse_loss(*matched_zeroes)
 
             loss.backward()
@@ -78,17 +93,17 @@ def main():
             best_loss = epoch_loss
             early_stop_counter = 0
             torch.save(model.state_dict(), os.path.join(RUN_DIR, "best_model.h5"))
-            print(f"Epoch {epoch + 1:03d}: New best_loss: {best_loss:.6f}")
+            logging.info(f"Epoch {epoch + 1:03d}: New best_loss: {best_loss:.6f}")
         else:
             early_stop_counter += 1
 
         if early_stop_counter >= CONFIG["training"]["early_stop_epochs"]:
-            print("Early stopping!")
+            logging.info("Early stopping!")
             break
 
         elapsed = time.time() - start_time
-        print(
-            f"{datetime.now()} |:| Epoch {epoch + 1:03d}/{CONFIG['training']['epochs_count']}, Loss: {epoch_loss:.6f}, Time: {elapsed:.1f}s"
+        logging.info(
+            f"{dt(1)} |:| Epoch {epoch + 1:03d}/{CONFIG['training']['epochs_count']}, Loss: {epoch_loss:.6f}, Time: {elapsed:.1f}s"
         )
 
 

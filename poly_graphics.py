@@ -1,11 +1,10 @@
 # https://complex-analysis.com/content/domain_coloring.html
 # example usage
-# import ui.poly_ui
-# ui.poly_ui.show([0, 0, 1], [1+1j, 2+2j, 3+3j], [1-4j, 8+2j, -2+6j])
+# import poly_graphics
+# poly_graphics.show([0, 0, 1], [1+1j, 2+2j, 3+3j], [1-4j, 8+2j, -2+6j])
 
 import numpy as np
 from numpy.polynomial import Polynomial
-from ui.dcolor import DColor
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -71,6 +70,9 @@ def show(coeffs, factual_zeroes, predicted_zeroes):
     - factual_zeroes: list of factual zeroes
     - predicted_zeroes: list of predicted zeroes
     """
+    print(coeffs)
+    print(factual_zeroes)
+    print(predicted_zeroes)
     coord_min, coord_max = _find_bounds(factual_zeroes + predicted_zeroes)
     print(f"Bounds: coord_min={coord_min}, coord_max={coord_max}")
 
@@ -108,27 +110,26 @@ def show(coeffs, factual_zeroes, predicted_zeroes):
         ax.scatter(zero.real, zero.imag, c="red", marker="1", s=140, label=f"Predicted")
 
     matched_pred, matched_fact = utils.match_closest(
-            torch.view_as_real(torch.tensor([predicted_zeroes], dtype=torch.complex64)),
-            torch.view_as_real(torch.tensor([factual_zeroes_rounded], dtype=torch.complex64))
+        torch.view_as_real(torch.tensor([predicted_zeroes], dtype=torch.complex64)),
+        torch.view_as_real(
+            torch.tensor([factual_zeroes_rounded], dtype=torch.complex64)
+        ),
     )
     # Linie łączące (uwaga: zip zadziała poprawnie tylko jeśli pred i true mają ten sam porządek)
     for p, t in zip(matched_pred[0], matched_fact[0]):
-        print(p)
-        print(t)
-        print("---")
-        ax.plot([p[0], t[0]], [p[1], t[1]], 'k--', alpha=0.2)
+        ax.plot([p[0], t[0]], [p[1], t[1]], "k--", alpha=0.2)
 
     # axes
-    ax.axhline(0, color='black', lw=0.5)
-    ax.axvline(0, color='black', lw=0.5)
+    ax.axhline(0, color="black", lw=0.5)
+    ax.axvline(0, color="black", lw=0.5)
     ax.get_xaxis().set_visible(True)
     ax.get_yaxis().set_visible(True)
-    
+
     ax.set_title("Polynomial predicted vs factual zeroes")
-    
+
     # legend
     handles, labels = ax.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     ax.legend(by_label.values(), by_label.keys(), fontsize=8)
-    
+
     plt.show()

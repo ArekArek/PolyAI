@@ -3,7 +3,7 @@ from numpy.polynomial import Polynomial
 import os
 import torch
 from scipy.optimize import linear_sum_assignment
-import torch.nn.functional as F
+import datetime
 
 MAX_FLOAT = torch.finfo(torch.float32).max
 BOUNDS_MODIFIER = 1e-33
@@ -17,6 +17,13 @@ with open("config.yaml", "r") as f:
 
 
 rng = np.random.default_rng()
+
+
+def dt(nice=False):
+    if nice:
+        return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    else:
+        return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
 def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
@@ -117,4 +124,14 @@ def match_closest(a, b):
     return (a, matched_b)
 
 
+def read_compiled_model(path):
+    import torch
 
+    state_dict = torch.load(path)
+    from collections import OrderedDict
+
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        name = k.replace("_orig_mod.", "")  # remove the prefix
+        new_state_dict[name] = v
+    return new_state_dict

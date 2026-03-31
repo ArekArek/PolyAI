@@ -208,3 +208,6 @@ __marimo__/
 
 
 .python-version
+model-output/
+test-data/
+training-data/
