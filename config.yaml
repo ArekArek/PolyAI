@@ -3,6 +3,7 @@ logs_path: logs/
 training:
   input_data_path: training-data/
   randomly_distributed_zeroes: 20
+  uniformly_distributed_zeroes: 20
   output_model_path: model-output/
   epochs_count: 10
   early_stop_epochs: 17

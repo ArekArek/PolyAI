@@ -29,6 +29,12 @@ parser.add_argument(
     help="Size of output polynomials with totally random zeroes distribution",
     default=CONFIG["training"]["randomly_distributed_zeroes"],
 )
+parser.add_argument(
+    "--uniform",
+    type=int,
+    help="Size of output polynomials with uniform zeroes distribution",
+    default=CONFIG["training"]["uniformly_distributed_zeroes"],
+)
 args = parser.parse_args()
 
 if not args.out:
@@ -64,7 +70,10 @@ logging.info("=" * 50)
 logging.info(f"random zeroes: {args.random}")
 randomly_distributed_zeroes = utils.generate_randomly_distributed_zeroes(args.random)
 
-zeroes = randomly_distributed_zeroes
+logging.info(f"uniform zeroes: {args.uniform}")
+uniformly_distributed_zeroes = utils.generate_uniformly_distributed_zeroes(args.uniform)
+
+zeroes = np.vstack((randomly_distributed_zeroes, uniformly_distributed_zeroes))
 
 np.random.shuffle(zeroes)
 
@@ -84,5 +93,5 @@ np.save(args.out + "coefficients.npy", coeffs)
 logging.info(f"Saving zeroes to {args.out}zeroes.npy")
 np.save(args.out + "zeroes.npy", zeroes_sorted)
 
-logging.info(f"{coeffs.size} rows generated in total")
+logging.info(f"{len(coeffs)} rows generated in total")
 logging.info(f"Generated data saved correctly.")

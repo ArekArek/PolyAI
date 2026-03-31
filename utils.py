@@ -26,6 +26,36 @@ def dt(nice=False):
         return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
+def generate_uniformly_distributed_zeroes(n_rows):
+
+    def gen(n):
+        phi= rng.uniform(0, 2 * np.pi, size=(n, CONFIG["polynomial_degree"])).astype(np.float32)
+        magnitude = LIMIT * np.sqrt(rng.uniform(0, 1, size=(n, CONFIG["polynomial_degree"]))).astype(np.float32)
+        z = magnitude * np.exp(1j * phi)
+        return z
+
+    zeroes = gen(n_rows)
+
+    while True:
+        # calculate abs of complex number and ignore those less than 1, to retrieve biggest possible combination
+        filtered_elements = np.where(np.abs(zeroes) > 1, zeroes, 1.0)
+        products_mag = np.abs(np.prod(filtered_elements, axis=1))
+
+        mask = products_mag > MAX_FLOAT
+        invalid_count = np.sum(mask)
+
+        if invalid_count == 0:
+            break
+
+        print(f"Redrawing uniformly distributed zeroes because of oveflow: {invalid_count}")
+        # regenerate zeroes for those which were too big to fit float
+        zeroes[mask] = gen(invalid_count)
+
+    return zeroes
+
+
+
+
 def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
 
     def gen(n):
@@ -72,7 +102,7 @@ def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
         if invalid_count == 0:
             break
 
-        print(f"Redrawing zeroes because of oveflow: {invalid_count}")
+        print(f"Redrawing randomly distributed zeroes because of oveflow: {invalid_count}")
         # regenerate zeroes for those which were too big to fit float
         zeroes[mask] = gen(invalid_count)
 
