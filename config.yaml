@@ -1,14 +1,15 @@
-polynomial_degree: 5
+polynomial_degree: 10
 logs_path: logs/
 training:
   input_data_path: training-data/
-  randomly_distributed_zeroes: 20
-  uniformly_distributed_zeroes: 20
+  randomly_distributed_zeroes: 500_000
+  repeated_distributed_zeroes: 2_500
+  uniformly_distributed_zeroes: 200_000
   output_model_path: model-output/
-  epochs_count: 10
+  epochs_count: 100
   early_stop_epochs: 17
-  batch_size: 9
-  hidden_size: 3
+  batch_size: 4096
+  hidden_size: 64
   layers_count: 1
 evaluation:
   test_data_path: test-data/

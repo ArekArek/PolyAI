@@ -61,7 +61,7 @@ def main():
 
     dataset = torch.utils.data.TensorDataset(coeff_tensor, zeroes_tensor)
     data_loader = torch.utils.data.DataLoader(
-        dataset, batch_size=CONFIG["training"]["batch_size"], shuffle=True
+        dataset, batch_size=CONFIG["training"]["batch_size"], shuffle=True, num_workers=os.cpu_count()
     )
 
     start_time = time.time()

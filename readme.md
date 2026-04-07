@@ -28,5 +28,11 @@ uv run evaluate.py -d training-data/ -m model-output/<run_date>/best_model.h5
 uv run show.py -d training-data/ -m model-output/<run_date>/best_model.h5
 ```
 
+# Different scenarios
 
+Generate only polynomials with repeated zeroes without shuffle - every 10 record have different multiplicity. Next show 21st polynomial with predicted zeroes.
+```
+uv run generator.py -o present-data/multiplicites/ --random 0 --repeated 10 --uniform 0 --no-shuffle
+uv run show.py -d present-data/multiplicites -m model-output/20260331_222734/best_model.h5 -i 21
+```
 

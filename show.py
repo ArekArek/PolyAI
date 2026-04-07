@@ -31,6 +31,12 @@ def main():
     parser.add_argument(
         "-i", "--index", type=int, default=0, help="Index of record to be shown"
     )
+    parser.add_argument(
+        "-log",
+        "--logarithmic",
+        action="store_true",
+        help="Logarithmic scale",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -69,7 +75,7 @@ def main():
 
     with torch.no_grad():
         predicted_zeroes = model(coeff_tensor)
-
+ 
     matched_zeroes = utils.match_closest(predicted_zeroes, factual_zeroes)
     loss = F.l1_loss(*matched_zeroes)
 
@@ -82,6 +88,7 @@ def main():
         coeffs_np_complex[0].tolist(),
         zeroes_np_complex[0].tolist(),
         torch.view_as_complex(predicted_zeroes[0]).tolist(),
+        args.logarithmic
     )
 
 

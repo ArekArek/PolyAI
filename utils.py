@@ -6,9 +6,7 @@ from scipy.optimize import linear_sum_assignment
 import datetime
 
 MAX_FLOAT = torch.finfo(torch.float32).max
-BOUNDS_MODIFIER = 1e-33
-LIMIT = MAX_FLOAT * BOUNDS_MODIFIER
-
+MAX_LOG = 6
 
 import yaml
 
@@ -26,11 +24,22 @@ def dt(nice=False):
         return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
-def generate_uniformly_distributed_zeroes(n_rows):
+def __random_log_uniform_float32(size):
+    sign = np.random.choice([-1, 1], size=size)
+    exponent = np.random.uniform(-MAX_LOG, MAX_LOG, size=size)
+    mantissa = np.random.uniform(1.0, 10.0, size=size)
+    return (sign * mantissa * 10**exponent).astype(np.float32)
 
+
+def generate_uniformly_distributed_zeroes(n_rows):
     def gen(n):
-        phi= rng.uniform(0, 2 * np.pi, size=(n, CONFIG["polynomial_degree"])).astype(np.float32)
-        magnitude = LIMIT * np.sqrt(rng.uniform(0, 1, size=(n, CONFIG["polynomial_degree"]))).astype(np.float32)
+        weights = rng.random((n, CONFIG["polynomial_degree"]))
+        weights = (weights / weights.sum(axis=1, keepdims=True)) * MAX_LOG
+
+        phi = rng.uniform(0, 2 * np.pi, size=(n, CONFIG["polynomial_degree"])).astype(
+            np.float32
+        )
+        magnitude = __random_log_uniform_float32((n, CONFIG["polynomial_degree"]))
         z = magnitude * np.exp(1j * phi)
         return z
 
@@ -41,30 +50,26 @@ def generate_uniformly_distributed_zeroes(n_rows):
         filtered_elements = np.where(np.abs(zeroes) > 1, zeroes, 1.0)
         products_mag = np.abs(np.prod(filtered_elements, axis=1))
 
-        mask = products_mag > MAX_FLOAT
+        mask = (~np.isfinite(products_mag)) | (products_mag > MAX_FLOAT)
         invalid_count = np.sum(mask)
 
         if invalid_count == 0:
             break
 
-        print(f"Redrawing uniformly distributed zeroes because of oveflow: {invalid_count}")
+        print(
+            f"Redrawing uniformly distributed zeroes because of oveflow: {invalid_count}"
+        )
         # regenerate zeroes for those which were too big to fit float
         zeroes[mask] = gen(invalid_count)
 
     return zeroes
 
 
-
-
 def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
 
     def gen(n):
-        real_parts = rng.uniform(
-            -LIMIT, LIMIT, size=(n, CONFIG["polynomial_degree"])
-        ).astype(np.float32)
-        imag_parts = rng.uniform(
-            -LIMIT, LIMIT, size=(n, CONFIG["polynomial_degree"])
-        ).astype(np.float32)
+        real_parts = __random_log_uniform_float32((n, CONFIG["polynomial_degree"]))
+        imag_parts = __random_log_uniform_float32((n, CONFIG["polynomial_degree"]))
 
         z = real_parts + 1j * imag_parts
 
@@ -95,14 +100,16 @@ def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
         # calculate abs of complex number and ignore those less than 1, to retrieve biggest possible combination
         filtered_elements = np.where(np.abs(zeroes) > 1, zeroes, 1.0)
         products_mag = np.abs(np.prod(filtered_elements, axis=1))
-
-        mask = products_mag > MAX_FLOAT
+        
+        mask = (~np.isfinite(products_mag)) | (products_mag > MAX_FLOAT)
         invalid_count = np.sum(mask)
 
         if invalid_count == 0:
             break
 
-        print(f"Redrawing randomly distributed zeroes because of oveflow: {invalid_count}")
+        print(
+            f"Redrawing randomly distributed zeroes because of oveflow: {invalid_count}"
+        )
         # regenerate zeroes for those which were too big to fit float
         zeroes[mask] = gen(invalid_count)
 
