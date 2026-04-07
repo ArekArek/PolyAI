@@ -6,7 +6,7 @@ import utils
 from utils import CONFIG, dt
 import logging
 import itertools
-
+from joblib import Parallel, delayed
 
 def _zeroes_multiplicities_combinations():
     min_multiplicity = 2
@@ -138,10 +138,12 @@ def main():
     zeroes_sorted = np.take_along_axis(zeroes, order, axis=1)
 
     # calculate coefficients
+    n_cores = -1
     logging.info("Calculating coefficients")
-    coeffs = np.array(
-        [Polynomial.fromroots(row).coef for row in zeroes], dtype=np.complex64
+    coeffs = Parallel(n_jobs=n_cores)(
+        delayed(lambda r: Polynomial.fromroots(r).coef)(row) for row in zeroes
     )
+    coeffs = np.array(coeffs, dtype=np.complex64)
 
     logging.info(f"Saving coefficients to {args.out}coefficients.npy")
     np.save(args.out + "coefficients.npy", coeffs)

@@ -5,7 +5,7 @@ import torch
 from scipy.optimize import linear_sum_assignment
 import datetime
 
-MAX_FLOAT = torch.finfo(torch.float32).max
+MAX_FLOAT = torch.finfo(torch.float32).max * 1e-2
 MAX_LOG = 6
 
 import yaml
