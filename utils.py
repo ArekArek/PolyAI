@@ -160,6 +160,15 @@ def match_closest(a, b):
     matched_b = torch.gather(b, 1, matched_indices_expanded)
     return (a, matched_b)
 
+def complex_to_polar(complex_array):
+    r = torch.abs(complex_array)
+    phi = torch.angle(complex_array)+torch.pi
+    return torch.stack((r, phi), dim=-1)
+
+def polar_to_complex(polar_array):
+    r = polar_array[..., 0]
+    phi = polar_array[..., 1]-torch.pi
+    return torch.polar(r, phi)
 
 def read_compiled_model(path):
     import torch

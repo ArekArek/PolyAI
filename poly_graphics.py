@@ -109,7 +109,7 @@ def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic = False):
     # predicted zeroes
     for zero in predicted_zeroes:
         ax.scatter(
-            zero.real, zero.imag, c="white", marker="1", s=140, label=f"Predicted"
+            zero.real, zero.imag, c="red", marker="1", s=140, label=f"Predicted"
         )
 
     matched_pred, matched_fact = utils.match_closest(
@@ -120,7 +120,7 @@ def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic = False):
     )
     # Linie łączące (uwaga: zip zadziała poprawnie tylko jeśli pred i true mają ten sam porządek)
     for p, t in zip(matched_pred[0], matched_fact[0]):
-        ax.plot([p[0], t[0]], [p[1], t[1]], "k--", alpha=0.2, c="white")
+        ax.plot([p[0], t[0]], [p[1], t[1]], "k--", c="black")
 
     # axes
     ax.axhline(0, color="black", lw=0.5)

@@ -6,11 +6,12 @@ training:
   repeated_distributed_zeroes: 2_500
   uniformly_distributed_zeroes: 200_000
   output_model_path: model-output/
-  epochs_count: 100
+  epochs_count: 128
   early_stop_epochs: 17
-  batch_size: 4096
-  hidden_size: 64
-  layers_count: 1
+  batch_size: 512
+  hidden_size: 256
+  layers_count: 3
+  start_learning_rate: 0.1
 evaluation:
   test_data_path: test-data/
 
