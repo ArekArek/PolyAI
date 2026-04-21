@@ -76,18 +76,18 @@ def main():
     with torch.no_grad():
         predicted_zeroes = model(coeff_tensor)
  
-    matched_zeroes = utils.match_closest(torch.view_as_real(polar_to_complex(predicted_zeroes)), factual_zeroes)
-    loss = F.l1_loss(*matched_zeroes)
-
-    logging.info(f" {factual_zeroes.size} test rows used in total ".center(50, "="))
-    logging.info("=" * 50)
-    logging.info(f" Result loss is {loss} ".center(50, "="))
-    logging.info("=" * 50)
+    matched_zeroes = utils.match_closest(torch.view_as_real(utils.polar_to_complex(predicted_zeroes)), factual_zeroes)
+#    loss = F.l1_loss(*matched_zeroes)
+#
+#    logging.info(f" {factual_zeroes.size} test rows used in total ".center(50, "="))
+#    logging.info("=" * 50)
+#    logging.info(f" Result loss is {loss} ".center(50, "="))
+#    logging.info("=" * 50)
 
     poly_graphics.show(
         coeffs_np_complex[0].tolist(),
         zeroes_np_complex[0].tolist(),
-        polar_to_complex(predicted_zeroes[0]).tolist(),
+        utils.polar_to_complex(predicted_zeroes[0]).tolist(),
         args.logarithmic
     )
 

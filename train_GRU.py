@@ -49,7 +49,7 @@ def main():
         os.path.join(CONFIG["training"]["input_data_path"], "zeroes.npy")
     )
     zeroes_tensor_complex = torch.from_numpy(zeroes_np_complex)
-    zeroes_tensor = torch.view_as_real(zeroes_tensor_complex)
+    zeroes_tensor = utils.complex_to_polar(zeroes_tensor_complex)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=CONFIG["training"]["start_learning_rate"], weight_decay=1e-5)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -73,10 +73,8 @@ def main():
         for coeff_batch, factual in data_loader:
             optimizer.zero_grad()
             preds = model(coeff_batch)
-
-            matched_zeroes = utils.match_closest(torch.view_as_real(polar_to_complex(preds)), factual)
-            loss = F.mse_loss(*matched_zeroes)
-
+            
+            loss = utils.loss_calculation(preds, factual)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()

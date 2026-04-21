@@ -115,7 +115,34 @@ def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
 
     return zeroes
 
+def loss_calculation(a, b):
+    B, K, _ = a.shape
+    device = a.device
 
+    p_log_mag = a[..., 0]
+    p_angle = a[..., 1]
+    t_log_mag = b[..., 0]
+    t_angle = b[..., 1]
+
+    diff_mag = (p_log_mag.unsqueeze(2) - t_log_mag.unsqueeze(1)) ** 2
+    diff_angle = 1 - torch.cos(p_angle.unsqueeze(2) - t_angle.unsqueeze(1))
+    cost = diff_mag + 0.5 * diff_angle
+    
+    cost_np = cost.detach().cpu().numpy()
+    perms = []
+    for i in range(B):
+        _, col_ind = linear_sum_assignment(cost_np[i])
+        perms.append(col_ind)
+
+    perm_indices = torch.tensor(perms, device=device, dtype=torch.long)
+    t_log_mag_matched = torch.gather(t_log_mag, 1, perm_indices)
+    t_angle_matched = torch.gather(t_angle, 1, perm_indices)
+
+    loss_mag = torch.nn.functional.mse_loss(p_log_mag, t_log_mag_matched)
+    loss_angle = (1 - torch.cos(p_angle - t_angle_matched)).mean()
+
+    return loss_mag + 0.5 * loss_angle
+    
 def match_closest(a, b):
     """
     Solves assignments problem using Hungarian algorithm
@@ -160,15 +187,21 @@ def match_closest(a, b):
     matched_b = torch.gather(b, 1, matched_indices_expanded)
     return (a, matched_b)
 
-def complex_to_polar(complex_array):
-    r = torch.abs(complex_array)
-    phi = torch.angle(complex_array)+torch.pi
-    return torch.stack((r, phi), dim=-1)
 
-def polar_to_complex(polar_array):
-    r = polar_array[..., 0]
-    phi = polar_array[..., 1]-torch.pi
-    return torch.polar(r, phi)
+def complex_to_polar(complex_tensor):
+    mag = torch.abs(complex_tensor)
+    # Dodajemy epsilon, aby uniknąć log10(0)
+    log_mag = torch.log10(mag + 1e-45)
+    angle = torch.angle(complex_tensor)
+    # Łączymy w parę (B, N, 2)
+    return torch.stack([log_mag, angle], axis=-1)
+
+def polar_to_complex(polar_tensor):
+    log_mag = polar_tensor[..., 0]
+    angle = polar_tensor[..., 1]
+    return (10**log_mag) * torch.exp(1j * angle)
+
+
 
 def read_compiled_model(path):
     import torch
