@@ -25,9 +25,9 @@ def dt(nice=False):
 
 
 def __random_log_uniform_float32(size):
-    sign = np.random.choice([-1, 1], size=size)
-    exponent = np.random.uniform(-MAX_LOG, MAX_LOG, size=size)
-    mantissa = np.random.uniform(1.0, 10.0, size=size)
+    sign = rng.choice([-1, 1], size=size)
+    exponent = rng.integers(-2, MAX_LOG, size=size)
+    mantissa = rng.uniform(1.0, 10.0, size=size)
     return (sign * mantissa * 10**exponent).astype(np.float32)
 
 
