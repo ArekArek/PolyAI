@@ -8,9 +8,9 @@ from utils import CONFIG
 class ModelGRU(nn.Module):
     def __init__(self):
         super().__init__()
-        self.hidden_size = CONFIG["training"]["hidden_size"],
-        self.num_layers = CONFIG["training"]["layers_count"],
-
+        self.hidden_size = CONFIG["training"]["hidden_size"]
+        self.num_layers = CONFIG["training"]["layers_count"]
+        
         # input size is 2 (real and imaginary part)
         self.gru = nn.GRU(
             input_size=2,
