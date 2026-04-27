@@ -24,22 +24,13 @@ def dt(nice=False):
         return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
-def __random_log_uniform_float32(size):
-    sign = rng.choice([-1, 1], size=size)
-    exponent = rng.integers(-2, MAX_LOG, size=size)
-    mantissa = rng.uniform(1.0, 10.0, size=size)
-    return (sign * mantissa * 10**exponent).astype(np.float32)
-
-
 def generate_uniformly_distributed_zeroes(n_rows):
     def gen(n):
         weights = rng.random((n, CONFIG["polynomial_degree"]))
         weights = (weights / weights.sum(axis=1, keepdims=True)) * MAX_LOG
 
-        phi = rng.uniform(0, 2 * np.pi, size=(n, CONFIG["polynomial_degree"])).astype(
-            np.float32
-        )
-        magnitude = __random_log_uniform_float32((n, CONFIG["polynomial_degree"]))
+        phi = rng.uniform(-np.pi, np.pi, size=(n, CONFIG["polynomial_degree"])).astype(np.float32)
+        magnitude = 10**(rng.uniform(0, 1, size=(n, CONFIG["polynomial_degree"])) * weights).astype(np.float32)
         z = magnitude * np.exp(1j * phi)
         return z
 
@@ -68,10 +59,10 @@ def generate_uniformly_distributed_zeroes(n_rows):
 def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
 
     def gen(n):
-        real_parts = __random_log_uniform_float32((n, CONFIG["polynomial_degree"]))
-        imag_parts = __random_log_uniform_float32((n, CONFIG["polynomial_degree"]))
+        mags = 10**(rng.uniform(0, MAX_LOG, size=(n, CONFIG["polynomial_degree"]))).astype(np.float32)
+        angs = rng.uniform(-np.pi, np.pi, size=(n, CONFIG["polynomial_degree"])).astype(np.float32)
+        z = mags * np.exp(1j * angs)
 
-        z = real_parts + 1j * imag_parts
 
         # --- multiple zeroes logic ---
         if multiple:
