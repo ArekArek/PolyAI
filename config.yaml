@@ -14,4 +14,7 @@ training:
   start_learning_rate: 0.1
 evaluation:
   test_data_path: test-data/
+  dk_circle_radius: 100_000_000
+  dk_tolerance: 0.0001
+  dk_max_iterations: 1000
 
