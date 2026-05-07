@@ -9,7 +9,7 @@ import torch
 import argparse
 import time
 
-def _calculate(coeffs, model, max_iter, tolerance):
+def _calculate(coeffs, zeroes, model, max_iter, tolerance):
     deg = CONFIG["polynomial_degree"]
     num_polys = len(coeffs)
 
@@ -75,6 +75,13 @@ def _calculate(coeffs, model, max_iter, tolerance):
         
         f0[mask] = new_f0[~converged_in_step] # Update f0 for the next round
 
+    if zeroes is not None and zeroes.any():
+        order = np.argsort(np.abs(r), axis=1)
+        r_sorted = np.take_along_axis(r, order, axis=1)
+        for i in range(num_polys):
+            logging.info(f"{i}) Coefficients: {coeffs[i]}")
+            logging.info(f"{i}) Factual roots: {zeroes[i]}")
+            logging.info(f"{i}) Roots found: {r_sorted[i]}")
     return iterations
 
 def main():
@@ -99,12 +106,22 @@ def main():
         default=1,
         help="How many cores have to be used for parallel computations.",
     )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        type=int,
+        default=0,
+        help="How many results should be printed.",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[logging.StreamHandler()],
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler(f"{CONFIG['logs_path']}{dt()}-eval.log")
+            ]
     )
 
     logging.info("=" * 50)
@@ -116,8 +133,16 @@ def main():
     logging.info("=" * 50)
 
     coeffs_path = os.path.join(args.data, "coefficients.npy")
+    zeroes_path = os.path.join(args.data, "zeroes.npy")
     logging.info(f"Load coefficients from {coeffs_path}")
-    coeffs = np.load(coeffs_path)
+    if args.verbose:
+        coeffs = np.load(coeffs_path)[0:args.verbose]
+        zeroes = np.load(zeroes_path)[0:args.verbose]
+        zeroes_splitted = np.array_split(zeroes, args.cores)
+    else:    
+        coeffs = np.load(coeffs_path)
+        zeroes_splitted = [None]*args.cores
+    coeffs_splitted = np.array_split(coeffs, args.cores)
 
     if args.model:
         logging.info(f"Load model from {args.model}")
@@ -128,29 +153,13 @@ def main():
         logging.info(f"No model passed in args")
         model = None
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.FileHandler(f"{CONFIG['logs_path']}{dt()}-eval.log"),
-            logging.StreamHandler(),
-        ],
-    )
-    logging.info("=" * 50)
-    logging.info(" Evaluate durand kerner ".center(50, "="))
-    logging.info(f" model is not provided: {not model}".center(50, "="))
-    logging.info(f" {dt(1)} ".center(50, "="))
-    logging.info("-" * 50)
-    logging.info(f"defaults: {CONFIG} ".center(50, "="))
-    logging.info("=" * 50)
     max_iter = CONFIG["evaluation"]["dk_max_iterations"]
 
-    coeffs_splitted = np.array_split(coeffs, args.cores)
         
     logging.info("START")
     start_time = time.perf_counter()
     iterations = Parallel(n_jobs=args.cores)(
-        delayed(lambda c: _calculate(c, model, max_iter, CONFIG["evaluation"]["dk_tolerance"]))(c) for c in coeffs_splitted
+        delayed(lambda z: _calculate(z[0], z[1], model, max_iter, CONFIG["evaluation"]["dk_tolerance"]))(z) for z in zip(coeffs_splitted, zeroes_splitted)
     )
     end_time = time.perf_counter()
     logging.info("FINISHED")

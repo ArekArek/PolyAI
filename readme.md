@@ -18,6 +18,12 @@ Trained models are saved under `model-output/<run_date>/`.
 Best model is named `best_model.h5`.
 Each model is an result of single epoch. This epoch with its loss is encoded in model name: `model_<epoch>_<loss>.h5`
 
+## Test model on Durand-Kerner algorithm
+```
+uv run .\dk.py --cores 4 --verbose 3 --model .\model-output\20260507_233928\best_model.h5
+```
+Above command choose starting points (for DK algorithm) using model under given path, based on coefficients in default test data location, run it using 4 cores and prints 3 results (coefficients + factual roots + roots found)
+
 ## Evaluate model
 ```
 uv run evaluate.py -d training-data/ -m model-output/<run_date>/best_model.h5

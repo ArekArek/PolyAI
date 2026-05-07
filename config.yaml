@@ -3,19 +3,19 @@ max_root_magnitude: 3
 logs_path: logs/
 training:
   input_data_path: training-data/
-  randomly_distributed_zeroes: 500_000
-  repeated_distributed_zeroes: 2_500
-  uniformly_distributed_zeroes: 200_000
+  randomly_distributed_zeroes: 30_000
+  repeated_distributed_zeroes: 200
+  uniformly_distributed_zeroes: 10_000
   output_model_path: model-output/
   epochs_count: 100
   early_stop_epochs: 17
   batch_size: 4096
-  hidden_size: 64
-  layers_count: 1
-  start_learning_rate: 0.1
+  hidden_size: 256
+  layers_count: 3
+  start_learning_rate: 0.01
 evaluation:
   test_data_path: test-data/
   dk_circle_radius: 10_000
-  dk_tolerance: 0.0001
+  dk_tolerance: 0.01
   dk_max_iterations: 1000
 
