@@ -6,7 +6,7 @@ from scipy.optimize import linear_sum_assignment
 import datetime
 
 MAX_FLOAT = torch.finfo(torch.float32).max * 1e-2
-MAX_LOG = 6
+MAX_LOG = 3
 
 import yaml
 
@@ -59,7 +59,7 @@ def generate_uniformly_distributed_zeroes(n_rows):
 def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
 
     def gen(n):
-        mags = 10**(rng.uniform(0, MAX_LOG, size=(n, CONFIG["polynomial_degree"]))).astype(np.float32)
+        mags = 10**(rng.uniform(-MAX_LOG, MAX_LOG, size=(n, CONFIG["polynomial_degree"]))).astype(np.float32)
         angs = rng.uniform(-np.pi, np.pi, size=(n, CONFIG["polynomial_degree"])).astype(np.float32)
         z = mags * np.exp(1j * angs)
 
