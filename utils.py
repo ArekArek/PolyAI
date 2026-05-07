@@ -6,7 +6,6 @@ from scipy.optimize import linear_sum_assignment
 import datetime
 
 MAX_FLOAT = torch.finfo(torch.float32).max * 1e-2
-MAX_LOG = 3
 
 import yaml
 
@@ -27,7 +26,7 @@ def dt(nice=False):
 def generate_uniformly_distributed_zeroes(n_rows):
     def gen(n):
         weights = rng.random((n, CONFIG["polynomial_degree"]))
-        weights = (weights / weights.sum(axis=1, keepdims=True)) * MAX_LOG
+        weights = (weights / weights.sum(axis=1, keepdims=True)) * CONFIG["max_root_magnitude"]
 
         phi = rng.uniform(-np.pi, np.pi, size=(n, CONFIG["polynomial_degree"])).astype(np.float32)
         magnitude = 10**(rng.uniform(0, 1, size=(n, CONFIG["polynomial_degree"])) * weights).astype(np.float32)
@@ -59,7 +58,7 @@ def generate_uniformly_distributed_zeroes(n_rows):
 def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
 
     def gen(n):
-        mags = 10**(rng.uniform(-MAX_LOG, MAX_LOG, size=(n, CONFIG["polynomial_degree"]))).astype(np.float32)
+        mags = 10**(rng.uniform(-CONFIG["max_root_magnitude"], CONFIG["max_root_magnitude"], size=(n, CONFIG["polynomial_degree"]))).astype(np.float32)
         angs = rng.uniform(-np.pi, np.pi, size=(n, CONFIG["polynomial_degree"])).astype(np.float32)
         z = mags * np.exp(1j * angs)
 
