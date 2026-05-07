@@ -51,9 +51,9 @@ def main():
     zeroes_tensor_complex = torch.from_numpy(zeroes_np_complex)
     zeroes_tensor = torch.view_as_real(zeroes_tensor_complex)
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-5)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=CONFIG["training"]["start_learning_rate"], weight_decay=1e-5)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", factor=0.2, patience=10
+        optimizer, mode="min", factor=0.2, patience=4
     )
 
     best_loss = float("inf")
