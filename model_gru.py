@@ -21,7 +21,9 @@ class ModelGRU(nn.Module):
         )
 
         # map state into polynomial_degree * 2 (real and imaginary part for each zeroe)
-        self.output_projection = nn.Linear(self.hidden_size, CONFIG["polynomial_degree"] * 2)
+        self.output_projection = nn.Linear(
+            self.hidden_size, CONFIG["polynomial_degree"] * 2
+        )
 
     def forward(self, x):
         # flow throught GRU

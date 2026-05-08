@@ -26,10 +26,16 @@ def dt(nice=False):
 def generate_uniformly_distributed_zeroes(n_rows):
     def gen(n):
         weights = rng.random((n, CONFIG["polynomial_degree"]))
-        weights = (weights / weights.sum(axis=1, keepdims=True)) * CONFIG["max_root_magnitude"]
+        weights = (weights / weights.sum(axis=1, keepdims=True)) * CONFIG[
+            "max_root_magnitude"
+        ]
 
-        phi = rng.uniform(-np.pi, np.pi, size=(n, CONFIG["polynomial_degree"])).astype(np.float32)
-        magnitude = 10**(rng.uniform(0, 1, size=(n, CONFIG["polynomial_degree"])) * weights).astype(np.float32)
+        phi = rng.uniform(-np.pi, np.pi, size=(n, CONFIG["polynomial_degree"])).astype(
+            np.float32
+        )
+        magnitude = 10 ** (
+            rng.uniform(0, 1, size=(n, CONFIG["polynomial_degree"])) * weights
+        ).astype(np.float32)
         z = magnitude * np.exp(1j * phi)
         return z
 
@@ -58,10 +64,17 @@ def generate_uniformly_distributed_zeroes(n_rows):
 def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
 
     def gen(n):
-        mags = 10**(rng.uniform(-CONFIG["max_root_magnitude"], CONFIG["max_root_magnitude"], size=(n, CONFIG["polynomial_degree"]))).astype(np.float32)
-        angs = rng.uniform(-np.pi, np.pi, size=(n, CONFIG["polynomial_degree"])).astype(np.float32)
+        mags = 10 ** (
+            rng.uniform(
+                -CONFIG["max_root_magnitude"],
+                CONFIG["max_root_magnitude"],
+                size=(n, CONFIG["polynomial_degree"]),
+            )
+        ).astype(np.float32)
+        angs = rng.uniform(-np.pi, np.pi, size=(n, CONFIG["polynomial_degree"])).astype(
+            np.float32
+        )
         z = mags * np.exp(1j * angs)
-
 
         # --- multiple zeroes logic ---
         if multiple:
@@ -90,7 +103,7 @@ def generate_randomly_distributed_zeroes(n_rows, multiple=[]):
         # calculate abs of complex number and ignore those less than 1, to retrieve biggest possible combination
         filtered_elements = np.where(np.abs(zeroes) > 1, zeroes, 1.0)
         products_mag = np.abs(np.prod(filtered_elements, axis=1))
-        
+
         mask = (~np.isfinite(products_mag)) | (products_mag > MAX_FLOAT)
         invalid_count = np.sum(mask)
 

@@ -51,7 +51,11 @@ def main():
     zeroes_tensor_complex = torch.from_numpy(zeroes_np_complex)
     zeroes_tensor = torch.view_as_real(zeroes_tensor_complex)
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=CONFIG["training"]["start_learning_rate"], weight_decay=1e-5)
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr=CONFIG["training"]["start_learning_rate"],
+        weight_decay=1e-5,
+    )
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="min", factor=0.2, patience=4
     )
@@ -61,7 +65,10 @@ def main():
 
     dataset = torch.utils.data.TensorDataset(coeff_tensor, zeroes_tensor)
     data_loader = torch.utils.data.DataLoader(
-        dataset, batch_size=CONFIG["training"]["batch_size"], shuffle=True, num_workers=os.cpu_count()
+        dataset,
+        batch_size=CONFIG["training"]["batch_size"],
+        shuffle=True,
+        num_workers=os.cpu_count(),
     )
 
     start_time = time.time()

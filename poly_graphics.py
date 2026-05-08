@@ -63,7 +63,7 @@ def _normalize(arr):
     return arr / (arrMax - arrMin)
 
 
-def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic = False):
+def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic=False):
     """
     Parameters:
     - coeffs: list of coefficients
@@ -88,7 +88,9 @@ def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic = False):
 
     # domain coloring
     if not logarithmic:
-        ax.imshow(rgb, extent=[coord_min, coord_max, coord_min, coord_max], origin="lower")
+        ax.imshow(
+            rgb, extent=[coord_min, coord_max, coord_min, coord_max], origin="lower"
+        )
 
     # factual zeroes
     factual_zeroes_rounded = np.round(factual_zeroes, decimals=6)
@@ -126,8 +128,8 @@ def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic = False):
     ax.axhline(0, color="black", lw=0.5)
     ax.axvline(0, color="black", lw=0.5)
     if logarithmic:
-        ax.set_xscale('symlog', linthresh=1.0)
-        ax.set_yscale('symlog', linthresh=1.0)
+        ax.set_xscale("symlog", linthresh=1.0)
+        ax.set_yscale("symlog", linthresh=1.0)
     ax.get_xaxis().set_visible(True)
     ax.get_yaxis().set_visible(True)
 
