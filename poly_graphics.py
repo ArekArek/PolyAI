@@ -63,7 +63,7 @@ def _normalize(arr):
     return arr / (arrMax - arrMin)
 
 
-def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic=False):
+def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic=False, output_path=None):
     """
     Parameters:
     - coeffs: list of coefficients
@@ -87,10 +87,10 @@ def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic=False):
     ax.set_ylabel("imag")
 
     # domain coloring
-    if not logarithmic:
-        ax.imshow(
-            rgb, extent=[coord_min, coord_max, coord_min, coord_max], origin="lower"
-        )
+    #if not logarithmic:
+    #    ax.imshow(
+    #        rgb, extent=[coord_min, coord_max, coord_min, coord_max], origin="lower"
+    #    )
 
     # factual zeroes
     factual_zeroes_rounded = np.round(factual_zeroes, decimals=6)
@@ -105,13 +105,13 @@ def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic=False):
             c=color,
             marker="X",
             s=80,
-            label=f"Factual (x{degree})",
+            label=f"Prawdziwe (x{degree})",
         )
 
     # predicted zeroes
     for zero in predicted_zeroes:
         ax.scatter(
-            zero.real, zero.imag, c="white", marker="1", s=140, label=f"Predicted"
+            zero.real, zero.imag, c="red", marker="1", s=140, label=f"Wyliczone"
         )
 
     matched_pred, matched_fact = utils.match_closest(
@@ -120,10 +120,38 @@ def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic=False):
             torch.tensor([factual_zeroes_rounded], dtype=torch.complex64)
         ),
     )
+    output_lines = []
     # Linie łączące (uwaga: zip zadziała poprawnie tylko jeśli pred i true mają ten sam porządek)
     for p, t in zip(matched_pred[0], matched_fact[0]):
-        ax.plot([p[0], t[0]], [p[1], t[1]], "k--", alpha=0.2, c="white")
+        
+        def format_latex_from_parts(realA, imagA, realB, imagB):
+            def to_latex_sci(val):
+                # Formatowanie do notacji naukowej z precyzją 5 miejsc
+                s = "{:.5e}".format(val)
+                base, exp = s.split('e')
+                exp = int(exp)
+                
+                # Jeśli wykładnik jest bliski zeru, używamy zwykłego formatu
+                if exp == 0:
+                    return "{:.5f}".format(val)
+                else:
+                    return r"{:.5f} \cdot 10^{{{}}}".format(float(base), exp)
 
+            real_strA = to_latex_sci(realA)
+            imag_strA = to_latex_sci(imagA)
+            real_strB = to_latex_sci(realB)
+            imag_strB = to_latex_sci(imagB)
+            
+            # Dodajemy znak plus tylko jeśli część urojona jest dodatnia
+            signA = "+" if imagA >= 0 else ""
+            signB = "+" if imagB >= 0 else ""
+            
+            return f"$\operatorname{{Re}}$ & ${real_strA}$ & ${real_strB}$ \\\\ $\operatorname{{Im}}$ & ${signA}{imag_strA}$ & ${signB}{imag_strB}$ \\\\ \hline"
+
+        output_lines.append(format_latex_from_parts(t[0], p[0], t[1], p[1]))
+        ax.plot([p[0], t[0]], [p[1], t[1]], "k--", alpha=0.2, c="black")
+    final_output = "\n".join(output_lines)
+    print(final_output)
     # axes
     ax.axhline(0, color="black", lw=0.5)
     ax.axvline(0, color="black", lw=0.5)
@@ -133,11 +161,15 @@ def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic=False):
     ax.get_xaxis().set_visible(True)
     ax.get_yaxis().set_visible(True)
 
-    ax.set_title("Polynomial predicted vs factual zeroes")
+#    ax.set_title("Polynomial predicted vs factual zeroes")
 
     # legend
     handles, labels = ax.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     ax.legend(by_label.values(), by_label.keys(), fontsize=8)
+    
 
-    plt.show()
+    if output_path:
+        plt.savefig(output_path)
+    else:
+        plt.show()
