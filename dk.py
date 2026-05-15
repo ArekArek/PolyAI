@@ -4,6 +4,7 @@ import logging
 from joblib import Parallel, delayed
 import os
 from model_gru import ModelGRU
+from model_mlp import ModelMLP
 import utils
 import torch
 import argparse
@@ -147,6 +148,8 @@ def main():
     if args.model:
         logging.info(f"Load model from {args.model}")
         model = ModelGRU()
+        if CONFIG["training"]["model_type"] == "mlp":
+            model = ModelMLP()
         model.load_state_dict(utils.read_compiled_model(args.model))
         model.eval()
     else:

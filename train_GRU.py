@@ -4,6 +4,7 @@ import os
 from scipy.optimize import linear_sum_assignment
 
 from model_gru import ModelGRU
+from model_mlp import ModelMLP
 import utils
 from utils import CONFIG, dt
 import logging
@@ -16,6 +17,8 @@ def main():
 
     if not os.path.exists(RUN_DIR):
         os.makedirs(RUN_DIR)
+    if not os.path.exists(CONFIG['logs_path']):
+        os.makedirs(CONFIG['logs_path'])
 
     logging.basicConfig(
         level=logging.INFO,
@@ -34,6 +37,8 @@ def main():
     logging.info("=" * 50)
 
     org_model = ModelGRU()
+    if CONFIG["training"]["model_type"] == "mlp":
+        org_model = ModelMLP()
     # compression for performance improvements
     model = torch.compile(org_model, mode="reduce-overhead")
     model.train()
