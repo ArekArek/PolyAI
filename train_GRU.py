@@ -15,14 +15,14 @@ def dist_criterion(pred, target):
     B, K, _ = pred.shape
     device = pred.device
 
-    p_log_mag = pred[..., 0]
+    p_log_mag = 10**pred[..., 0] *30
     p_angle = pred[..., 1]
-    t_log_mag = target[..., 0]
+    t_log_mag = 10**target[..., 0] *30
     t_angle = target[..., 1]
 
-    diff_mag = (p_log_mag.unsqueeze(2) - t_log_mag.unsqueeze(1)) ** 2
+    diff_mag = (p_log_mag.unsqueeze(2) - t_log_mag.unsqueeze(1)) **2   
     diff_angle = 1 - torch.cos(p_angle.unsqueeze(2) - t_angle.unsqueeze(1))
-    cost = diff_mag + 0.5 * diff_angle
+    cost = diff_mag + diff_angle
                                            
     cost_np = cost.detach().cpu().numpy()
     perms = []
@@ -33,9 +33,9 @@ def dist_criterion(pred, target):
     perm_indices = torch.tensor(perms, device=device, dtype=torch.long)
     t_log_mag_matched = torch.gather(t_log_mag, 1, perm_indices)
     t_angle_matched = torch.gather(t_angle, 1, perm_indices)
-    loss_mag = torch.nn.functional.huber_loss(p_log_mag, t_log_mag_matched)
-    loss_angle = (1 - torch.cos(p_angle - t_angle_matched)).mean()
-    return loss_mag + 0.5 * loss_angle
+    loss_mag = torch.nn.functional.mse_loss(p_log_mag, t_log_mag_matched)
+    loss_angle = torch.abs(torch.atan2(torch.sin(p_angle-t_angle_matched), torch.cos(p_angle-t_angle_matched))).mean()
+    return loss_mag + loss_angle
 
 def main():
     RUN_DIR = f"{CONFIG['training']['output_model_path']}{dt()}"
@@ -80,7 +80,6 @@ def main():
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=CONFIG["training"]["start_learning_rate"],
-        weight_decay=1e-5,
     )
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="min", factor=0.2, patience=4

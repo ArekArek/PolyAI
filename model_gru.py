@@ -16,8 +16,7 @@ class ModelGRU(nn.Module):
         self.gru = nn.GRU(
             input_size=2,
             hidden_size=self.hidden_size,
-            num_layers=self.num_layers,
-            dropout=0.1,
+            num_layers=self.num_layers
         )
 
         # map state into polynomial_degree * 2 (real and imaginary part for each zeroe)
