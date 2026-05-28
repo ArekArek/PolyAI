@@ -175,3 +175,16 @@ def read_compiled_model(path):
         name = k.replace("_orig_mod.", "")  # remove the prefix
         new_state_dict[name] = v
     return new_state_dict
+
+def c2p(complex_tensor):
+    mag = torch.abs(complex_tensor)
+    # add epsilon, to avoid log10(0)
+    log_mag = torch.log10(mag + 1e-45)/30
+    angle = torch.angle(complex_tensor)
+    return torch.stack([log_mag, angle], axis=-1)
+
+def p2c(polar_tensor):
+    log_mag = polar_tensor[..., 0]*30
+    angle = polar_tensor[..., 1]
+    return (10**log_mag) * torch.exp(1j * angle)
+

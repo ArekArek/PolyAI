@@ -15,11 +15,11 @@ def _calculate(coeffs, zeroes, model, max_iter, tolerance):
     num_polys = len(coeffs)
 
     if model:
-        coeffs_torch = torch.view_as_real(torch.from_numpy(coeffs.copy()))
+        coeffs_torch = utils.c2p(torch.from_numpy(coeffs.copy()))
         logging.info(f"Loading model: {model}")
         with torch.no_grad():
             model_output = model(coeffs_torch)
-            starting_points = torch.view_as_complex(model_output).numpy()
+            starting_points = utils.p2c(model_output).numpy()
 
     else:
         r = CONFIG["evaluation"]["dk_circle_radius"]
