@@ -37,6 +37,14 @@ def main():
         action="store_true",
         help="Logarithmic scale",
     )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default=None,
+        help="Path to output for image file",
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -85,11 +93,13 @@ def main():
     logging.info(f" Result loss is {loss} ".center(50, "="))
     logging.info("=" * 50)
 
+
     poly_graphics.show(
         coeffs_np_complex[0].tolist(),
         zeroes_np_complex[0].tolist(),
         torch.view_as_complex(predicted_zeroes[0]).tolist(),
         args.logarithmic,
+        args.output
     )
 
 

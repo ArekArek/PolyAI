@@ -72,6 +72,7 @@ def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic=False, output_pat
     """
     print(coeffs)
     print(factual_zeroes)
+    predicted_zeroes = sorted(predicted_zeroes, key=abs)
     print(predicted_zeroes)
     coord_min, coord_max = _find_bounds(factual_zeroes + predicted_zeroes)
     print(f"Bounds: coord_min={coord_min}, coord_max={coord_max}")
@@ -114,13 +115,15 @@ def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic=False, output_pat
             zero.real, zero.imag, c="red", marker="1", s=140, label=f"Wyliczone"
         )
 
+
+
     matched_pred, matched_fact = utils.match_closest(
         torch.view_as_real(torch.tensor([predicted_zeroes], dtype=torch.complex64)),
         torch.view_as_real(
             torch.tensor([factual_zeroes_rounded], dtype=torch.complex64)
         ),
     )
-    output_lines = []
+    output_lines = [f"{output_path}"]
     # Linie łączące (uwaga: zip zadziała poprawnie tylko jeśli pred i true mają ten sam porządek)
     for p, t in zip(matched_pred[0], matched_fact[0]):
         
@@ -146,9 +149,9 @@ def show(coeffs, factual_zeroes, predicted_zeroes, logarithmic=False, output_pat
             signA = "+" if imagA >= 0 else ""
             signB = "+" if imagB >= 0 else ""
             
-            return f"$\operatorname{{Re}}$ & ${real_strA}$ & ${real_strB}$ \\\\ $\operatorname{{Im}}$ & ${signA}{imag_strA}$ & ${signB}{imag_strB}$ \\\\ \hline"
+            return f"{real_strA} / {real_strB} / {signA}{imag_strA} / {signB}{imag_strB},"
 
-        output_lines.append(format_latex_from_parts(t[0], p[0], t[1], p[1]))
+        output_lines.append(format_latex_from_parts(t[0], t[1], p[0], p[1]))
         ax.plot([p[0], t[0]], [p[1], t[1]], "k--", alpha=0.2, c="black")
     final_output = "\n".join(output_lines)
     print(final_output)
