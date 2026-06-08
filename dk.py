@@ -22,14 +22,13 @@ def _calculate(coeffs, zeroes, model, max_iter, tolerance):
             starting_points = utils.p2c(model_output).numpy()
 
     else:
-        r = CONFIG["evaluation"]["dk_circle_radius"]
+        r = 1 + np.abs(coeffs).max(axis=1)
         logging.info(
-            f"No model passed, generate starting point on unit circle with r = {r}"
+            f"No model passed, generate starting point on unit circles"
         )
         roots_indices = np.arange(deg)
         phi = (roots_indices * 2 * np.pi / deg) + 0.4  # 0.4 to break symmetry
-        roots = r * np.exp(1j * phi)
-        starting_points = np.tile(roots, (num_polys, 1))
+        starting_points = r[:, None]* np.exp(1j * phi)
 
     # reverse coefficients to be in decreasing order (for np.polyval)
     c_rev = coeffs[:, ::-1].astype(dtype=complex)
