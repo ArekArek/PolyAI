@@ -37,6 +37,14 @@ def main():
         action="store_true",
         help="Logarithmic scale",
     )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default=None,
+        help="Path to output for image file",
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -57,7 +65,7 @@ def main():
         np.load(os.path.join(args.data, "coefficients.npy"))[args.index], 0
     )
     coeff_tensor_complex = torch.from_numpy(coeffs_np_complex)
-    coeff_tensor = torch.view_as_real(coeff_tensor_complex)
+    coeff_tensor = utils.c2p(coeff_tensor_complex)
 
     zeroes_np_complex = np.expand_dims(
         np.load(os.path.join(args.data, "zeroes.npy"))[args.index], 0
@@ -75,7 +83,8 @@ def main():
 
     with torch.no_grad():
         predicted_zeroes = model(coeff_tensor)
- 
+        predicted_zeroes = torch.view_as_real(utils.p2c(predicted_zeroes))
+
     matched_zeroes = utils.match_closest(predicted_zeroes, factual_zeroes)
     loss = F.l1_loss(*matched_zeroes)
 
@@ -84,11 +93,13 @@ def main():
     logging.info(f" Result loss is {loss} ".center(50, "="))
     logging.info("=" * 50)
 
+
     poly_graphics.show(
         coeffs_np_complex[0].tolist(),
         zeroes_np_complex[0].tolist(),
         torch.view_as_complex(predicted_zeroes[0]).tolist(),
-        args.logarithmic
+        args.logarithmic,
+        args.output
     )
 
 

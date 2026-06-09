@@ -8,6 +8,7 @@ import logging
 import itertools
 from joblib import Parallel, delayed
 
+
 def _zeroes_multiplicities_combinations():
     min_multiplicity = 2
     possible_multiplicity_values = range(
