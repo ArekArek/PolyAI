@@ -2,6 +2,7 @@ polynomial_degree: 10
 max_root_magnitude: 3
 logs_path: logs/
 training:
+  model_type: mlp
   input_data_path: training-data/
   randomly_distributed_zeroes: 300_000
   repeated_distributed_zeroes: 2_000
