@@ -40,6 +40,7 @@ def main():
     if CONFIG["training"]["model_type"] == "mlp":
         org_model = ModelMLP()
     # compression for performance improvements
+    torch.compiler.set_stance("force_eager")
     model = torch.compile(org_model, mode="reduce-overhead")
     model.train()
 
